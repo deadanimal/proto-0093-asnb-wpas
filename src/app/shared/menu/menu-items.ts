@@ -42,14 +42,14 @@ export const ROUTES: RouteInfo[] = [
   {
     path: "/admin/market-info",
     title: "Funds & Market Info",
-    type: "sub",
+    type: "link",
     icontype: "fas fa-tasks text-default",
-    collapse: "sm",
-    isCollapsed: true,
-    children: [
-      { path: "dashboard", title: "Dashboard", type: "link" },
-      { path: "history", title: "History", type: "link" },
-    ],
+    // collapse: "sm",
+    // isCollapsed: true,
+    // children: [
+    //   { path: "dashboard", title: "Dashboard", type: "link" },
+    //   { path: "history", title: "History", type: "link" },
+    // ],
   },
   {
     path: "/admin/investor-profile",

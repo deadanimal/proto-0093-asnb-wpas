@@ -236,7 +236,7 @@ export class InvestorAnalysisComponent implements OnInit, OnDestroy {
     });
   }
   initChart() {
-    let chart = am4core.create("chartdivTsa", am4charts.PieChart);
+    let chart = am4core.create("chartdivIA", am4charts.PieChart);
 
     // Add and configure Series
     let pieSeries = chart.series.push(new am4charts.PieSeries());

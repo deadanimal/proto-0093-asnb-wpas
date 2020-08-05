@@ -48,10 +48,11 @@ export const AdminRoutes: Routes = [
       },
       {
         path: "market-info",
-        children: [
-          { path: "dashboard", component: MiDashboardComponent },
-          { path: "history", component: MiHistoryComponent },
-        ],
+        component: MiDashboardComponent,
+        // children: [
+        //   { path: "dashboard", component: MiDashboardComponent },
+        //   { path: "history", component: MiHistoryComponent },
+        // ],
       },
       {
         path: "investor-profile",

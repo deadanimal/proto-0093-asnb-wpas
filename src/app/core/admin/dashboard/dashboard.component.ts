@@ -1,19 +1,10 @@
 import { Component, OnInit, NgZone, OnDestroy } from "@angular/core";
 import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
-import * as am4maps from "@amcharts/amcharts4/maps";
-import am4geodata_continentsLow from "@amcharts/amcharts4-geodata/continentsLow";
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
 import { Router } from "@angular/router";
-import { BsModalRef, BsModalService } from "ngx-bootstrap";
-
-export enum SelectionType {
-  single = "single",
-  multi = "multi",
-  multiClick = "multiClick",
-  cell = "cell",
-  checkbox = "checkbox",
-}
+am4core.useTheme(am4themes_animated);
+import noUiSlider from "nouislider";
 
 @Component({
   selector: "app-dashboard",
@@ -21,72 +12,55 @@ export enum SelectionType {
   styleUrls: ["./dashboard.component.scss"],
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  // Chart
-  private chart: any;
-  private chart1: any;
-  private chart2: any;
-  private clicked: any = true;
-  private clicked1: any = false;
+  chart;
 
-  // Modal
-  modal: BsModalRef;
-  modalConfig = {
-    keyboard: true,
-    class: "modal-dialog-centered",
-  };
+  // data
 
-  // Data
-  public datas: any = [];
-
-  // Table
-  tableEntries: number = 5;
-  tableSelected: any[] = [];
-  tableTemp = [];
-  tableActiveRow: any;
-  // tableRows: Project[] = [];
-  SelectionType = SelectionType;
-  listProject: any = [
-    {
-      name: "Project 1",
-      start_date: "2019-07-27T01:07:14Z",
-      expected_completion_date: "2019-07-27T01:07:14Z",
-      status: "OG",
-      created_at: "2019-07-27T01:07:14Z",
-    },
-    {
-      name: "Project 2",
-      start_date: "2019-07-27T01:07:14Z",
-      expected_completion_date: "2019-07-27T01:07:14Z",
-      status: "CO",
-      created_at: "2019-07-27T01:07:14Z",
-    },
-    {
-      name: "Project 3",
-      start_date: "2019-07-27T01:07:14Z",
-      expected_completion_date: "2019-07-27T01:07:14Z",
-      status: "PE",
-      created_at: "2019-07-27T01:07:14Z",
-    },
-    {
-      name: "Project 4",
-      start_date: "2019-07-27T01:07:14Z",
-      expected_completion_date: "2019-07-27T01:07:14Z",
-      status: "CO",
-      created_at: "2019-07-27T01:07:14Z",
-    },
-    {
-      name: "Project 5",
-      start_date: "2019-07-27T01:07:14Z",
-      expected_completion_date: "2019-07-27T01:07:14Z",
-      status: "OG",
-      created_at: "2019-07-27T01:07:14Z",
-    },
-  ];
+  bsValue = new Date();
+  bsRangeValue: Date[];
+  maxDate = new Date();
 
   constructor(private zone: NgZone) {}
 
   ngOnInit() {
-    this.getCharts();
+    // this.initChart();
+    this.initChart2();
+    this.initChart3();
+    var c: any = document.getElementById("input-slider"),
+      d = document.getElementById("input-slider-value");
+
+    noUiSlider.create(c, {
+      start: 100,
+      connect: [true, false],
+      //step: 1000,
+      range: {
+        min: 100,
+        max: 500,
+      },
+    }),
+      c.noUiSlider.on("update", function (a, b) {
+        d.textContent = a[b];
+      });
+
+    var c1: any = document.getElementById("input-slider-range"),
+      d1 = document.getElementById("input-slider-range-value-low"),
+      e = document.getElementById("input-slider-range-value-high"),
+      f = [d1, e];
+
+    noUiSlider.create(c1, {
+      start: [
+        parseInt(d1.getAttribute("data-range-value-low")),
+        parseInt(e.getAttribute("data-range-value-high")),
+      ],
+      connect: !0,
+      range: {
+        min: parseInt(c1.getAttribute("data-range-value-min")),
+        max: parseInt(c1.getAttribute("data-range-value-max")),
+      },
+    }),
+      c1.noUiSlider.on("update", function (a, b) {
+        f[b].textContent = a[b];
+      });
   }
 
   ngOnDestroy() {
@@ -95,608 +69,384 @@ export class DashboardComponent implements OnInit, OnDestroy {
         console.log("Chart disposed");
         this.chart.dispose();
       }
-      if (this.chart1) {
-        console.log("Chart disposed");
-        this.chart1.dispose();
-      }
     });
   }
 
-  entriesChange($event) {
-    this.tableEntries = $event.target.value;
-  }
+  initChart() {
+    let chart = am4core.create("chartDashboard", am4charts.XYChart);
 
-  filterTable($event) {
-    // let val = $event.target.value;
-    // this.tableTemp = this.tableRows.filter(function (d) {
-    //   for (var key in d) {
-    //     if (d[key].toLowerCase().indexOf(val) !== -1) {
-    //       return true;
-    //     }
-    //   }
-    //   return false;
-    // });
-  }
-
-  onSelect({ selected }) {
-    this.tableSelected.splice(0, this.tableSelected.length);
-    this.tableSelected.push(...selected);
-  }
-
-  onActivate(event) {
-    this.tableActiveRow = event.row;
-  }
-
-  getCharts() {
-    this.zone.runOutsideAngular(() => {
-      this.getChart();
-      // this.getChart1();
-      this.getChart2();
-      this.getChart3();
-      this.getChart4();
-    });
-  }
-
-  getChart() {
-    let chart = am4core.create("chartdivdashboard", am4charts.PieChart);
-
-    // Add data
     chart.data = [
-      {
-        status: "Completed ",
-        amount: 2,
-      },
-      {
-        status: "Pending",
-        amount: 5,
-      },
-      {
-        status: "On-Going",
-        amount: 3,
-      },
-      {
-        status: "Cancel",
-        amount: 4,
-      },
+      { date: 1577743200000, open: 122, close: 104 },
+      { date: 1577829600000, open: 121, close: 70 },
+      { date: 1577916000000, open: 101, close: 55 },
+      { date: 1578002400000, open: 103, close: 45 },
+      { date: 1578088800000, open: 153, close: 85 },
+      { date: 1578175200000, open: 150, close: 116 },
+      { date: 1578261600000, open: 135, close: 153 },
+      { date: 1578348000000, open: 98, close: 152 },
+      { date: 1578434400000, open: 101, close: 192 },
+      { date: 1578520800000, open: 110, close: 225 },
+      { date: 1578607200000, open: 157, close: 233 },
+      { date: 1578693600000, open: 128, close: 232 },
+      { date: 1578780000000, open: 101, close: 235 },
+      { date: 1578866400000, open: 109, close: 200 },
+      { date: 1578952800000, open: 142, close: 214 },
+      { date: 1579039200000, open: 123, close: 224 },
+      { date: 1579125600000, open: 99, close: 176 },
+      { date: 1579212000000, open: 100, close: 172 },
+      { date: 1579298400000, open: 67, close: 138 },
+      { date: 1579384800000, open: 81, close: 127 },
+      { date: 1579471200000, open: 39, close: 137 },
+      { date: 1579557600000, open: 73, close: 127 },
+      { date: 1579644000000, open: 78, close: 154 },
+      { date: 1579730400000, open: 116, close: 127 },
+      { date: 1579816800000, open: 136, close: 78 },
+      { date: 1579903200000, open: 139, close: 61 },
+      { date: 1579989600000, open: 162, close: 13 },
+      { date: 1580076000000, open: 201, close: 41 },
+      { date: 1580162400000, open: 221, close: 72 },
+      { date: 1580248800000, open: 257, close: 87 },
+      { date: 1580335200000, open: 211, close: 114 },
+      { date: 1580421600000, open: 233, close: 138 },
+      { date: 1580508000000, open: 261, close: 141 },
+      { date: 1580594400000, open: 279, close: 130 },
     ];
 
-    // Add and configure Series
-    let pieSeries = chart.series.push(new am4charts.PieSeries());
-    pieSeries.dataFields.value = "amount";
-    pieSeries.dataFields.category = "status";
-    pieSeries.slices.template.stroke = am4core.color("#fff");
-    pieSeries.slices.template.strokeOpacity = 1;
+    let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+    dateAxis.renderer.grid.template.location = 0;
+    dateAxis.renderer.minGridDistance = 60;
 
-    // This creates initial animation
-    pieSeries.hiddenState.properties.opacity = 1;
-    pieSeries.hiddenState.properties.endAngle = -90;
-    pieSeries.hiddenState.properties.startAngle = -90;
+    let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+    valueAxis.tooltip.disabled = true;
 
-    chart.hiddenState.properties.radius = am4core.percent(0);
-  }
+    // only for the legend
+    let iconSeries = chart.series.push(new am4charts.ColumnSeries());
+    iconSeries.fill = am4core.color("#ec0800");
+    iconSeries.strokeOpacity = 0;
+    iconSeries.stroke = am4core.color("#ec0800");
+    iconSeries.name = "Events";
+    iconSeries.dataFields.dateX = "date";
+    iconSeries.dataFields.valueY = "v";
 
-  getChart4() {
-    let container = am4core.create("chartdivdashboard4", am4core.Container);
-    container.layout = "grid";
-    container.fixedWidthGrid = false;
-    container.width = am4core.percent(100);
-    container.height = am4core.percent(100);
+    let series = chart.series.push(new am4charts.LineSeries());
+    series.dataFields.dateX = "date";
+    series.dataFields.openValueY = "open";
+    series.dataFields.valueY = "close";
+    series.tooltipText = "open: {openValueY.value} close: {valueY.value}";
+    series.sequencedInterpolation = true;
+    series.stroke = am4core.color("#1b7cb3");
+    series.strokeWidth = 2;
+    series.name = "District Metered Usage";
+    series.stroke = chart.colors.getIndex(0);
+    series.fill = series.stroke;
+    series.fillOpacity = 0.8;
 
-    // Color set
-    let colors = new am4core.ColorSet();
+    let bullet = series.bullets.push(new am4charts.CircleBullet());
+    bullet.fill = new am4core.InterfaceColorSet().getFor("background");
+    bullet.fillOpacity = 1;
+    bullet.strokeWidth = 2;
+    bullet.circle.radius = 4;
 
-    // Functions that create various sparklines
-    function createLine(title, data, color) {
-      let chart = container.createChild(am4charts.XYChart);
-      chart.width = am4core.percent(45);
-      chart.height = 70;
+    let series2 = chart.series.push(new am4charts.LineSeries());
+    series2.dataFields.dateX = "date";
+    series2.dataFields.valueY = "open";
+    series2.sequencedInterpolation = true;
+    series2.strokeWidth = 2;
+    series2.tooltip.getFillFromObject = false;
+    series2.tooltip.getStrokeFromObject = true;
+    series2.tooltip.label.fill = am4core.color("#000");
+    series2.name = "SP Aggregate usage";
+    series2.stroke = chart.colors.getIndex(7);
+    series2.fill = series2.stroke;
 
-      chart.data = data;
+    let bullet2 = series2.bullets.push(new am4charts.CircleBullet());
+    bullet2.fill = bullet.fill;
+    bullet2.fillOpacity = 1;
+    bullet2.strokeWidth = 2;
+    bullet2.circle.radius = 4;
 
-      chart.titles.template.fontSize = 10;
-      chart.titles.template.textAlign = "start";
-      chart.titles.template.isMeasured = false;
-      chart.titles.create().text = title;
+    chart.cursor = new am4charts.XYCursor();
+    chart.cursor.xAxis = dateAxis;
+    chart.scrollbarX = new am4core.Scrollbar();
 
-      chart.padding(20, 5, 2, 5);
+    // let negativeRange;
 
-      let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
-      dateAxis.renderer.grid.template.disabled = true;
-      dateAxis.renderer.labels.template.disabled = true;
-      dateAxis.startLocation = 0.5;
-      dateAxis.endLocation = 0.7;
-      dateAxis.cursorTooltipEnabled = false;
+    // create ranges
+    let negativeRange;
 
-      let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-      valueAxis.min = 0;
-      valueAxis.renderer.grid.template.disabled = true;
-      valueAxis.renderer.baseGrid.disabled = true;
-      valueAxis.renderer.labels.template.disabled = true;
-      valueAxis.cursorTooltipEnabled = false;
+    // create ranges
+    chart.events.on("datavalidated", function () {
+      series.dataItems.each(function (s1DataItem) {
+        let s1PreviousDataItem;
+        let s2PreviousDataItem;
 
-      chart.cursor = new am4charts.XYCursor();
-      chart.cursor.lineY.disabled = true;
-      chart.cursor.behavior = "none";
+        let s2DataItem = series2.dataItems.getIndex(s1DataItem.index);
 
-      let series = chart.series.push(new am4charts.LineSeries());
-      series.tooltipText = "{date}: [bold]{value}";
-      series.dataFields.dateX = "date";
-      series.dataFields.valueY = "value";
-      series.tensionX = 0.8;
-      series.strokeWidth = 2;
-      series.stroke = color;
+        if (s1DataItem.index > 0) {
+          s1PreviousDataItem = series.dataItems.getIndex(s1DataItem.index - 1);
+          s2PreviousDataItem = series2.dataItems.getIndex(s1DataItem.index - 1);
+        }
 
-      // render data points as bullets
-      let bullet = series.bullets.push(new am4charts.CircleBullet());
-      bullet.circle.opacity = 0;
-      bullet.circle.fill = color;
-      bullet.circle.propertyFields.opacity = "opacity";
-      bullet.circle.radius = 3;
+        let startTime = am4core.time
+          .round(
+            new Date(s1DataItem.dateX.getTime()),
+            dateAxis.baseInterval.timeUnit,
+            dateAxis.baseInterval.count
+          )
+          .getTime();
 
-      return chart;
-    }
+        // intersections
+        if (s1PreviousDataItem && s2PreviousDataItem) {
+          let x0 =
+            am4core.time
+              .round(
+                new Date(s1PreviousDataItem.dateX.getTime()),
+                dateAxis.baseInterval.timeUnit,
+                dateAxis.baseInterval.count
+              )
+              .getTime() +
+            dateAxis.baseDuration / 2;
+          let y01 = s1PreviousDataItem.valueY;
+          let y02 = s2PreviousDataItem.valueY;
 
-    function createColumn(title, data, color) {
-      let chart = container.createChild(am4charts.XYChart);
-      chart.width = am4core.percent(45);
-      chart.height = 70;
+          let x1 = startTime + dateAxis.baseDuration / 2;
+          let y11 = s1DataItem.valueY;
+          let y12 = s2DataItem.valueY;
 
-      chart.data = data;
+          let intersection = am4core.math.getLineIntersection(
+            { x: x0, y: y01 },
+            { x: x1, y: y11 },
+            { x: x0, y: y02 },
+            { x: x1, y: y12 }
+          );
 
-      chart.titles.template.fontSize = 10;
-      chart.titles.template.textAlign = "start";
-      chart.titles.template.isMeasured = false;
-      chart.titles.create().text = title;
+          startTime = Math.round(intersection.x);
+        }
 
-      chart.padding(20, 5, 2, 5);
-
-      let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
-      dateAxis.renderer.grid.template.disabled = true;
-      dateAxis.renderer.labels.template.disabled = true;
-      dateAxis.cursorTooltipEnabled = false;
-
-      let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-      valueAxis.min = 0;
-      valueAxis.renderer.grid.template.disabled = true;
-      valueAxis.renderer.baseGrid.disabled = true;
-      valueAxis.renderer.labels.template.disabled = true;
-      valueAxis.cursorTooltipEnabled = false;
-
-      chart.cursor = new am4charts.XYCursor();
-      chart.cursor.lineY.disabled = true;
-
-      let series = chart.series.push(new am4charts.ColumnSeries());
-      series.tooltipText = "{date}: [bold]{value}";
-      series.dataFields.dateX = "date";
-      series.dataFields.valueY = "value";
-      series.strokeWidth = 0;
-      series.fillOpacity = 0.5;
-      series.columns.template.propertyFields.fillOpacity = "opacity";
-      series.columns.template.fill = color;
-
-      return chart;
-    }
-
-    function createPie(data, color) {
-      let chart = container.createChild(am4charts.PieChart);
-      chart.width = am4core.percent(10);
-      chart.height = 70;
-      chart.padding(20, 0, 2, 0);
-
-      chart.data = data;
-
-      // Add and configure Series
-      let pieSeries = chart.series.push(new am4charts.PieSeries());
-      pieSeries.dataFields.value = "value";
-      pieSeries.dataFields.category = "category";
-      pieSeries.labels.template.disabled = true;
-      pieSeries.ticks.template.disabled = true;
-      pieSeries.slices.template.fill = color;
-      pieSeries.slices.template.adapter.add("fill", function (
-        fill: any,
-        target
-      ) {
-        return fill.lighten(0.1 * target.dataItem.index);
+        // start range here
+        if (s2DataItem.valueY > s1DataItem.valueY) {
+          if (!negativeRange) {
+            negativeRange = dateAxis.createSeriesRange(series);
+            negativeRange.date = new Date(startTime);
+            negativeRange.contents.fill = series2.fill;
+            negativeRange.contents.fillOpacity = 0.8;
+          }
+        } else {
+          // if negative range started
+          if (negativeRange) {
+            negativeRange.endDate = new Date(startTime);
+          }
+          negativeRange = undefined;
+        }
+        // end if last
+        if (s1DataItem.index == series.dataItems.length - 1) {
+          if (negativeRange) {
+            negativeRange.endDate = new Date(
+              s1DataItem.dateX.getTime() + dateAxis.baseDuration / 2
+            );
+            negativeRange = undefined;
+          }
+        }
       });
-      pieSeries.slices.template.stroke = am4core.color("#fff");
-
-      // chart.chartContainer.minHeight = 40;
-      // chart.chartContainer.minWidth = 40;
-
-      return chart;
-    }
-
-    createLine(
-      "(Price)",
-      [
-        { date: new Date(2018, 0, 1, 8, 0, 0), value: 57 },
-        { date: new Date(2018, 0, 1, 9, 0, 0), value: 27 },
-        { date: new Date(2018, 0, 1, 10, 0, 0), value: 24 },
-        { date: new Date(2018, 0, 1, 11, 0, 0), value: 59 },
-        { date: new Date(2018, 0, 1, 12, 0, 0), value: 33 },
-        { date: new Date(2018, 0, 1, 13, 0, 0), value: 46 },
-        { date: new Date(2018, 0, 1, 14, 0, 0), value: 20 },
-        { date: new Date(2018, 0, 1, 15, 0, 0), value: 42 },
-        { date: new Date(2018, 0, 1, 16, 0, 0), value: 59, opacity: 1 },
-      ],
-      colors.getIndex(0)
-    );
-
-    createColumn(
-      "(Turnover)",
-      [
-        { date: new Date(2018, 0, 1, 8, 0, 0), value: 22 },
-        { date: new Date(2018, 0, 1, 9, 0, 0), value: 25 },
-        { date: new Date(2018, 0, 1, 10, 0, 0), value: 40 },
-        { date: new Date(2018, 0, 1, 11, 0, 0), value: 35 },
-        { date: new Date(2018, 0, 1, 12, 0, 0), value: 29 },
-        { date: new Date(2018, 0, 1, 13, 0, 0), value: 1 },
-        { date: new Date(2018, 0, 1, 14, 0, 0), value: 15 },
-        { date: new Date(2018, 0, 1, 15, 0, 0), value: 29 },
-        { date: new Date(2018, 0, 1, 16, 0, 0), value: 33, opacity: 1 },
-      ],
-      colors.getIndex(0)
-    );
-
-    createPie(
-      [
-        { category: "Marketing", value: 501 },
-        { category: "Research", value: 301 },
-        { category: "Sales", value: 201 },
-        { category: "HR", value: 165 },
-      ],
-      colors.getIndex(0)
-    );
-
-    createLine(
-      "(Price)",
-      [
-        { date: new Date(2018, 0, 1, 8, 0, 0), value: 22 },
-        { date: new Date(2018, 0, 1, 9, 0, 0), value: 25 },
-        { date: new Date(2018, 0, 1, 10, 0, 0), value: 40 },
-        { date: new Date(2018, 0, 1, 11, 0, 0), value: 35 },
-        { date: new Date(2018, 0, 1, 12, 0, 0), value: 29 },
-        { date: new Date(2018, 0, 1, 13, 0, 0), value: 1 },
-        { date: new Date(2018, 0, 1, 14, 0, 0), value: 15 },
-        { date: new Date(2018, 0, 1, 15, 0, 0), value: 29 },
-        { date: new Date(2018, 0, 1, 16, 0, 0), value: 33, opacity: 1 },
-      ],
-      colors.getIndex(1)
-    );
-
-    createColumn(
-      "(Turnover)",
-      [
-        { date: new Date(2018, 0, 1, 8, 0, 0), value: 57 },
-        { date: new Date(2018, 0, 1, 9, 0, 0), value: 27 },
-        { date: new Date(2018, 0, 1, 10, 0, 0), value: 24 },
-        { date: new Date(2018, 0, 1, 11, 0, 0), value: 59 },
-        { date: new Date(2018, 0, 1, 12, 0, 0), value: 33 },
-        { date: new Date(2018, 0, 1, 13, 0, 0), value: 46 },
-        { date: new Date(2018, 0, 1, 14, 0, 0), value: 20 },
-        { date: new Date(2018, 0, 1, 15, 0, 0), value: 42 },
-        { date: new Date(2018, 0, 1, 16, 0, 0), value: 59, opacity: 1 },
-      ],
-      colors.getIndex(1)
-    );
-
-    createPie(
-      [
-        { category: "Data 1", value: 130 },
-        { category: "Data 2", value: 450 },
-        { category: "Data 3", value: 400 },
-        { category: "Data 4", value: 200 },
-      ],
-      colors.getIndex(1)
-    );
-
-    createLine(
-      "(Price)",
-      [
-        { date: new Date(2018, 0, 1, 8, 0, 0), value: 16 },
-        { date: new Date(2018, 0, 1, 9, 0, 0), value: 62 },
-        { date: new Date(2018, 0, 1, 10, 0, 0), value: 55 },
-        { date: new Date(2018, 0, 1, 11, 0, 0), value: 34 },
-        { date: new Date(2018, 0, 1, 12, 0, 0), value: 29 },
-        { date: new Date(2018, 0, 1, 13, 0, 0), value: 29 },
-        { date: new Date(2018, 0, 1, 14, 0, 0), value: 28 },
-        { date: new Date(2018, 0, 1, 15, 0, 0), value: 32 },
-        { date: new Date(2018, 0, 1, 16, 0, 0), value: 30, opacity: 1 },
-      ],
-      colors.getIndex(2)
-    );
-
-    createColumn(
-      "(Turnover)",
-      [
-        { date: new Date(2018, 0, 1, 8, 0, 0), value: 50 },
-        { date: new Date(2018, 0, 1, 9, 0, 0), value: 51 },
-        { date: new Date(2018, 0, 1, 10, 0, 0), value: 62 },
-        { date: new Date(2018, 0, 1, 11, 0, 0), value: 60 },
-        { date: new Date(2018, 0, 1, 12, 0, 0), value: 25 },
-        { date: new Date(2018, 0, 1, 13, 0, 0), value: 20 },
-        { date: new Date(2018, 0, 1, 14, 0, 0), value: 70 },
-        { date: new Date(2018, 0, 1, 15, 0, 0), value: 42 },
-        { date: new Date(2018, 0, 1, 16, 0, 0), value: 33, opacity: 1 },
-      ],
-      colors.getIndex(2)
-    );
-
-    createPie(
-      [
-        { category: "Data 1", value: 220 },
-        { category: "Data 2", value: 200 },
-        { category: "Data 3", value: 150 },
-        { category: "Data 4", value: 125 },
-      ],
-      colors.getIndex(2)
-    );
-
-    // FB
-
-    createLine(
-      "(Price)",
-      [
-        { date: new Date(2018, 0, 1, 8, 0, 0), value: 52 },
-        { date: new Date(2018, 0, 1, 9, 0, 0), value: 55 },
-        { date: new Date(2018, 0, 1, 10, 0, 0), value: 35 },
-        { date: new Date(2018, 0, 1, 11, 0, 0), value: 34 },
-        { date: new Date(2018, 0, 1, 12, 0, 0), value: 39 },
-        { date: new Date(2018, 0, 1, 13, 0, 0), value: 42 },
-        { date: new Date(2018, 0, 1, 14, 0, 0), value: 29 },
-        { date: new Date(2018, 0, 1, 15, 0, 0), value: 22 },
-        { date: new Date(2018, 0, 1, 16, 0, 0), value: 15, opacity: 1 },
-      ],
-      colors.getIndex(3)
-    );
-
-    createColumn(
-      "(Turnover)",
-      [
-        { date: new Date(2018, 0, 1, 8, 0, 0), value: 20 },
-        { date: new Date(2018, 0, 1, 9, 0, 0), value: 20 },
-        { date: new Date(2018, 0, 1, 10, 0, 0), value: 25 },
-        { date: new Date(2018, 0, 1, 11, 0, 0), value: 26 },
-        { date: new Date(2018, 0, 1, 12, 0, 0), value: 29 },
-        { date: new Date(2018, 0, 1, 13, 0, 0), value: 27 },
-        { date: new Date(2018, 0, 1, 14, 0, 0), value: 25 },
-        { date: new Date(2018, 0, 1, 15, 0, 0), value: 32 },
-        { date: new Date(2018, 0, 1, 16, 0, 0), value: 30, opacity: 1 },
-      ],
-      colors.getIndex(3)
-    );
-
-    createPie(
-      [
-        { category: "Data 1", value: 120 },
-        { category: "Data 2", value: 150 },
-        { category: "Data 3", value: 125 },
-        { category: "Data 4", value: 250 },
-      ],
-      colors.getIndex(3)
-    );
-
-    this.chart = container;
+    });
   }
 
-  getChart1() {
-    let chart = am4core.create("chartdivdashboard1", am4charts.PieChart);
+  initChart2() {
+    let chart = am4core.create("chartDashboard2", am4charts.XYChart);
     chart.hiddenState.properties.opacity = 0; // this creates initial fade-in
 
-    chart.data = [
-      {
-        item: "Lights",
-        value: 40,
-      },
-      {
-        item: "Fridge",
-        value: 30,
-      },
-      {
-        item: "TV",
-        value: 20,
-      },
-      {
-        item: "Washing Machine",
-        value: 16,
-      },
-    ];
-    chart.radius = am4core.percent(70);
-    chart.innerRadius = am4core.percent(40);
-    chart.startAngle = 180;
-    chart.endAngle = 360;
+    let data = [];
+    let open = 100;
+    let close = 250;
 
-    let series = chart.series.push(new am4charts.PieSeries());
-    series.dataFields.value = "value";
-    series.dataFields.category = "item";
-    series.ticks.template.disabled = true;
-    series.labels.template.disabled = true;
+    for (var i = 1; i < 120; i++) {
+      open += Math.round((Math.random() < 0.5 ? 1 : -1) * Math.random() * 4);
+      close = Math.round(
+        open +
+          Math.random() * 5 +
+          i / 5 -
+          (Math.random() < 0.5 ? 1 : -1) * Math.random() * 2
+      );
+      data.push({ date: new Date(2018, 0, i), open: open, close: close });
+    }
 
-    series.slices.template.cornerRadius = 10;
-    series.slices.template.innerCornerRadius = 7;
-    series.slices.template.draggable = true;
-    series.slices.template.inert = true;
-    series.alignLabels = false;
+    chart.data = data;
 
-    series.hiddenState.properties.startAngle = 90;
-    series.hiddenState.properties.endAngle = 90;
-
-    //chart.legend = new am4charts.Legend();
-    this.chart1 = chart;
-  }
-
-  getChart2() {
-    // let chart = am4core.create("piechartdiv111", am4charts.XYChart);
-    let chart = am4core.create("chartdivdashboard2", am4charts.XYChart);
-
-    // Add data
-    chart.data = [
-      {
-        name: "John",
-        points: 35654,
-        color: chart.colors.next(),
-        bullet: "https://www.amcharts.com/lib/images/faces/A04.png",
-      },
-      {
-        name: "Damon",
-        points: 65456,
-        color: chart.colors.next(),
-        bullet: "https://www.amcharts.com/lib/images/faces/C02.png",
-      },
-      {
-        name: "Patrick",
-        points: 45724,
-        color: chart.colors.next(),
-        bullet: "https://www.amcharts.com/lib/images/faces/D02.png",
-      },
-      {
-        name: "Mark",
-        points: 13654,
-        color: chart.colors.next(),
-        bullet: "https://www.amcharts.com/lib/images/faces/E01.png",
-      },
-    ];
-
-    // Create axes
-    let categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
-    categoryAxis.dataFields.category = "name";
-    categoryAxis.renderer.grid.template.disabled = true;
-    categoryAxis.renderer.minGridDistance = 30;
-    categoryAxis.renderer.inside = true;
-    categoryAxis.renderer.labels.template.fill = am4core.color("#fff");
-    categoryAxis.renderer.labels.template.fontSize = 20;
+    let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
 
     let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-    valueAxis.renderer.grid.template.strokeDasharray = "4,4";
-    valueAxis.renderer.labels.template.disabled = true;
-    valueAxis.min = 0;
+    valueAxis.tooltip.disabled = true;
 
-    // Do not crop bullets
-    chart.maskBullets = false;
-
-    // Remove padding
-    chart.paddingBottom = 0;
-
-    // Create series
-    let series = chart.series.push(new am4charts.ColumnSeries());
-    series.dataFields.valueY = "points";
-    series.dataFields.categoryX = "name";
-    series.columns.template.propertyFields.fill = "color";
-    series.columns.template.propertyFields.stroke = "color";
-    series.columns.template.column.cornerRadiusTopLeft = 15;
-    series.columns.template.column.cornerRadiusTopRight = 15;
-    series.columns.template.tooltipText = "{categoryX}: [bold]{valueY}[/b]";
-
-    // Add bullets
-    let bullet = series.bullets.push(new am4charts.Bullet());
-    let image = bullet.createChild(am4core.Image);
-    image.horizontalCenter = "middle";
-    image.verticalCenter = "bottom";
-    image.dy = 20;
-    image.y = am4core.percent(100);
-    image.propertyFields.href = "bullet";
-    image.tooltipText = series.columns.template.tooltipText;
-    image.propertyFields.fill = "color";
-    image.filters.push(new am4core.DropShadowFilter());
-  }
-
-  getChart3() {
-    let chart = am4core.create("chartdivdashboard3", am4charts.XYChart);
-    // chart.scrollbarX = new am4core.Scrollbar();
-
-    // Add data
-    chart.data = [
-      {
-        country: "Jan",
-        visits: 4,
-      },
-      {
-        country: "Feb",
-        visits: 5,
-      },
-      {
-        country: "Mar",
-        visits: 7,
-      },
-      {
-        country: "Apr",
-        visits: 4,
-      },
-      {
-        country: "May",
-        visits: 5,
-      },
-      {
-        country: "Jun",
-        visits: 3,
-      },
-      {
-        country: "July",
-        visits: 8,
-      },
-      {
-        country: "Aug",
-        visits: 7,
-      },
-      {
-        country: "Sep",
-        visits: 3,
-      },
-      {
-        country: "Oct",
-        visits: 8,
-      },
-      {
-        country: "Nov",
-        visits: 9,
-      },
-      {
-        country: "Dec",
-        visits: 7,
-      },
-    ];
-
-    // Create axes
-    let categoryAxis = chart.xAxes.push(new am4charts.CategoryAxis());
-    categoryAxis.dataFields.category = "country";
-    categoryAxis.renderer.grid.template.location = 0;
-    categoryAxis.renderer.minGridDistance = 30;
-    categoryAxis.renderer.labels.template.horizontalCenter = "right";
-    categoryAxis.renderer.labels.template.verticalCenter = "middle";
-    categoryAxis.renderer.labels.template.rotation = 270;
-    categoryAxis.tooltip.disabled = true;
-    // categoryAxis.renderer.minHeight = 110;
-
-    let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-    valueAxis.renderer.minWidth = 50;
-
-    // Create series
-    let series = chart.series.push(new am4charts.ColumnSeries());
+    let series = chart.series.push(new am4charts.LineSeries());
+    series.dataFields.dateX = "date";
+    series.dataFields.openValueY = "open";
+    series.dataFields.valueY = "close";
+    series.tooltipText = "open: {openValueY.value} close: {valueY.value}";
     series.sequencedInterpolation = true;
-    series.dataFields.valueY = "visits";
-    series.dataFields.categoryX = "country";
-    series.tooltipText = "[{categoryX}: bold]{valueY}[/]";
-    series.columns.template.strokeWidth = 0;
+    series.fillOpacity = 0.3;
+    series.defaultState.transitionDuration = 1000;
+    series.tensionX = 0.8;
 
-    series.tooltip.pointerOrientation = "vertical";
+    let series2 = chart.series.push(new am4charts.LineSeries());
+    series2.dataFields.dateX = "date";
+    series2.dataFields.valueY = "open";
+    series2.sequencedInterpolation = true;
+    series2.defaultState.transitionDuration = 1500;
+    series2.stroke = chart.colors.getIndex(6);
+    series2.tensionX = 0.8;
 
-    series.columns.template.column.cornerRadiusTopLeft = 10;
-    series.columns.template.column.cornerRadiusTopRight = 10;
-    series.columns.template.column.fillOpacity = 0.8;
+    chart.cursor = new am4charts.XYCursor();
+    chart.cursor.xAxis = dateAxis;
+    chart.scrollbarX = new am4core.Scrollbar();
+  }
 
-    // on hover, make corner radiuses bigger
-    let hoverState = series.columns.template.column.states.create("hover");
-    hoverState.properties.cornerRadiusTopLeft = 0;
-    hoverState.properties.cornerRadiusTopRight = 0;
-    hoverState.properties.fillOpacity = 1;
+  initChart3() {
+    let chart = am4core.create("chartDashboard3", am4charts.XYChart);
+    chart.hiddenState.properties.opacity = 0;
 
-    series.columns.template.adapter.add("fill", function (fill, target) {
-      return chart.colors.getIndex(target.dataItem.index);
+    chart.padding(0, 0, 0, 0);
+
+    chart.zoomOutButton.disabled = true;
+
+    let data = [];
+    let visits = 10;
+    let i = 0;
+
+    for (i = 0; i <= 30; i++) {
+      visits -= Math.round((Math.random() < 0.5 ? 1 : -1) * Math.random() * 10);
+      data.push({ date: new Date().setSeconds(i - 30), value: visits });
+    }
+
+    chart.data = data;
+
+    let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+    dateAxis.renderer.grid.template.location = 0;
+    dateAxis.renderer.minGridDistance = 30;
+    dateAxis.dateFormats.setKey("second", "ss");
+    dateAxis.periodChangeDateFormats.setKey("second", "[bold]h:mm a");
+    dateAxis.periodChangeDateFormats.setKey("minute", "[bold]h:mm a");
+    dateAxis.periodChangeDateFormats.setKey("hour", "[bold]h:mm a");
+    dateAxis.renderer.inside = true;
+    dateAxis.renderer.axisFills.template.disabled = true;
+    dateAxis.renderer.ticks.template.disabled = true;
+
+    let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+    valueAxis.tooltip.disabled = true;
+    valueAxis.interpolationDuration = 500;
+    valueAxis.rangeChangeDuration = 500;
+    valueAxis.renderer.inside = true;
+    valueAxis.renderer.minLabelPosition = 0.05;
+    valueAxis.renderer.maxLabelPosition = 0.95;
+    valueAxis.renderer.axisFills.template.disabled = true;
+    valueAxis.renderer.ticks.template.disabled = true;
+
+    let series = chart.series.push(new am4charts.LineSeries());
+    series.dataFields.dateX = "date";
+    series.dataFields.valueY = "value";
+    series.interpolationDuration = 500;
+    series.defaultState.transitionDuration = 0;
+    series.tensionX = 0.8;
+
+    chart.events.on("datavalidated", function () {
+      dateAxis.zoom({ start: 1 / 15, end: 1.2 }, false, true);
     });
 
-    // Cursor
-    chart.cursor = new am4charts.XYCursor();
+    dateAxis.interpolationDuration = 500;
+    dateAxis.rangeChangeDuration = 500;
 
-    // this.chart2 = chart;
+    document.addEventListener(
+      "visibilitychange",
+      function () {
+        if (document.hidden) {
+          if (interval) {
+            clearInterval(interval);
+          }
+        } else {
+          startInterval();
+        }
+      },
+      false
+    );
+
+    // add data
+    let interval;
+    function startInterval() {
+      interval = setInterval(function () {
+        visits =
+          visits +
+          Math.round((Math.random() < 0.5 ? 1 : -1) * Math.random() * 5);
+        let lastdataItem = series.dataItems.getIndex(
+          series.dataItems.length - 1
+        );
+        chart.addData(
+          {
+            date: new Date(lastdataItem.dateX.getTime() + 1000),
+            value: visits,
+          },
+          1
+        );
+      }, 1000);
+    }
+
+    startInterval();
+
+    // all the below is optional, makes some fancy effects
+    // gradient fill of the series
+    series.fillOpacity = 1;
+    let gradient = new am4core.LinearGradient();
+    gradient.addColor(chart.colors.getIndex(0), 0.2);
+    gradient.addColor(chart.colors.getIndex(0), 0);
+    series.fill = gradient;
+
+    // this makes date axis labels to fade out
+    dateAxis.renderer.labels.template.adapter.add("fillOpacity", function (
+      fillOpacity,
+      target
+    ) {
+      let dataItem = target.dataItem;
+      return dataItem.position;
+    });
+
+    // need to set this, otherwise fillOpacity is not changed and not set
+    dateAxis.events.on("validated", function () {
+      am4core.iter.each(dateAxis.renderer.labels.iterator(), function (label) {
+        label.fillOpacity = label.fillOpacity;
+      });
+    });
+
+    // this makes date axis labels which are at equal minutes to be rotated
+    dateAxis.renderer.labels.template.adapter.add("rotation", function (
+      rotation,
+      target
+    ) {
+      let dataItem = target.dataItem;
+      // if (
+      //   dataItem.dates &&
+      //   dataItem.dates.getTime() ==
+      //     am4core.time
+      //       .round(new Date(dataItem.dates.getTime()), "minute")
+      //       .getTime()
+      // ) {
+      target.verticalCenter = "middle";
+      target.horizontalCenter = "left";
+      return -90;
+      // } else {
+      //   target.verticalCenter = "bottom";
+      //   target.horizontalCenter = "middle";
+      //   return 0;
+      // }
+    });
+
+    // bullet at the front of the line
+    let bullet = series.createChild(am4charts.CircleBullet);
+    bullet.circle.radius = 5;
+    bullet.fillOpacity = 1;
+    bullet.fill = chart.colors.getIndex(0);
+    bullet.isMeasured = false;
+
+    series.events.on("validated", function () {
+      bullet.moveTo(series.dataItems.last.point);
+      bullet.validatePosition();
+    });
   }
 }

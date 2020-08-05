@@ -6,6 +6,42 @@ import { Router } from "@angular/router";
 am4core.useTheme(am4themes_animated);
 import noUiSlider from "nouislider";
 
+const mock = [
+  {
+    income_dis: "RM 5500.00",
+    price_return: "RM 2000.00",
+    income_return: "RM 1500.00",
+    total_return: "RM 6000.00",
+    fund_vol: "RM 5500.00",
+    std_dev: "RM 2000.00",
+    info_ratio: "RM 1500.00",
+    sharp_ratio: "6000.00",
+    created_at: "27-07-2019",
+  },
+  {
+    income_dis: "RM 3500.00",
+    price_return: "RM 1000.00",
+    income_return: "RM 500.00",
+    total_return: "RM 4000.00",
+    fund_vol: "RM 3500.00",
+    std_dev: "RM 1000.00",
+    info_ratio: "RM 500.00",
+    sharp_ratio: "4000.00",
+    created_at: "27-07-2019",
+  },
+  {
+    income_dis: "RM 7500.00",
+    price_return: "RM 5000.00",
+    income_return: "RM 2500.00",
+    total_return: "RM 9000.00",
+    fund_vol: "RM 7500.00",
+    std_dev: "RM 5000.00",
+    info_ratio: "RM 2500.00",
+    sharp_ratio: "4000.00",
+    created_at: "27-07-2019",
+  },
+];
+
 @Component({
   selector: "app-mi-dashboard",
   templateUrl: "./mi-dashboard.component.html",
@@ -13,6 +49,9 @@ import noUiSlider from "nouislider";
 })
 export class MiDashboardComponent implements OnInit, OnDestroy {
   chart;
+
+  // data
+  datas = mock;
 
   bsValue = new Date();
   bsRangeValue: Date[];
@@ -22,8 +61,8 @@ export class MiDashboardComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.initChart();
-    this.initChart2();
-    this.initChart3();
+    // this.initChart2();
+    // this.initChart3();
     var c: any = document.getElementById("input-slider"),
       d = document.getElementById("input-slider-value");
 
