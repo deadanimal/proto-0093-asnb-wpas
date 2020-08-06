@@ -256,7 +256,7 @@ export class ManagementUserComponent implements OnInit, OnDestroy {
   }
 
   getChart() {
-    let chart = am4core.create("chartdiv", am4charts.XYChart);
+    let chart = am4core.create("chartUser", am4charts.XYChart);
 
     // Add data
     chart.data = [
