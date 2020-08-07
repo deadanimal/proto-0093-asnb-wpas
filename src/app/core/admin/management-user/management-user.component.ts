@@ -230,6 +230,34 @@ export class ManagementUserComponent implements OnInit, OnDestroy {
       });
   }
 
+  // deleteUser() {
+  //   swal
+  //     .fire({
+  //       title: "Success",
+  //       text: "A new user has been created!",
+  //       type: "success",
+  //       buttonsStyling: false,
+  //       confirmButtonClass: "btn btn-success",
+  //       confirmButtonText: "Close",
+  //     })
+  //     .then((result) => {
+  //       if (result.value) {
+  //         this.successAlert("delete user.");
+  //       }
+  //     });
+  // }
+
+  successAlert(task) {
+    swal.fire({
+      title: "Success",
+      text: "Successfully " + task,
+      type: "success",
+      buttonsStyling: false,
+      confirmButtonClass: "btn btn-success",
+      confirmButtonText: "Close",
+    });
+  }
+
   entriesChange($event) {
     this.tableEntries = $event.target.value;
   }
