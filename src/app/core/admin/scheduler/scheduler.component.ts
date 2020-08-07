@@ -70,38 +70,26 @@ export class SchedulerComponent implements OnInit, OnDestroy {
   listReceipt: any = [
     {
       name: "Scheduler 1",
-      text: "This is a text message for scheduler 1.",
-      type: "In house &amp; 3rd Party fund info data",
+      text: "PDF",
+      type: "In house & 3rd Party fund info data",
       created_at: "2019-07-27T01:07:14Z",
     },
     {
       name: "Scheduler 2",
-      text: "This is a text message for scheduler 2.",
+      text: "HTML",
       type: "Real time market report",
       created_at: "2019-07-27T01:07:14Z",
     },
     {
       name: "Scheduler 3",
-      text: "This is a text message for scheduler 3.",
-      type: "IInvestors &amp; Investments",
+      text: "CSV",
+      type: "Investors & Investments",
       created_at: "2019-07-27T01:07:14Z",
     },
     {
       name: "Scheduler 4",
-      text: "This is a text message for scheduler 4.",
+      text: "CSV",
       type: "Daily Fund Price",
-      created_at: "2019-07-27T01:07:14Z",
-    },
-    {
-      name: "Scheduler 5",
-      text: "This is a text message for scheduler 5.",
-      type: "New Fund Maintenance",
-      created_at: "2019-07-27T01:07:14Z",
-    },
-    {
-      name: "Scheduler 6",
-      text: "This is a text message for scheduler 6.",
-      type: "New Distribution maintenance",
       created_at: "2019-07-27T01:07:14Z",
     },
   ];
@@ -348,56 +336,50 @@ export class SchedulerComponent implements OnInit, OnDestroy {
   }
 
   getChart2() {
-    let chart = am4core.create("chartScheduler2", am4charts.XYChart);
+    // pieChart.radius = am4core.percent.percent(50);
+    let chart = am4core.create("chartScheduler2", am4charts.PieChart);
 
     // Add data
     chart.data = [
       {
-        date: new Date(2018, 3, 20),
-        value: 90,
+        country: "In house & 3rd Party fund",
+        litres: 501.9,
       },
       {
-        date: new Date(2018, 3, 21),
-        value: 102,
+        country: "Real time market report",
+        litres: 301.9,
       },
       {
-        date: new Date(2018, 3, 22),
-        value: 65,
+        country: "Investors & Investments",
+        litres: 201.1,
       },
       {
-        date: new Date(2018, 3, 23),
-        value: 62,
+        country: "Daily Fund Price",
+        litres: 165.8,
       },
       {
-        date: new Date(2018, 3, 24),
-        value: 55,
+        country: "New Fund Maintenance",
+        litres: 139.9,
       },
       {
-        date: new Date(2018, 3, 25),
-        value: 81,
+        country: "New Distribution maintenance",
+        litres: 128.3,
       },
     ];
 
-    // Create axes
-    let dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+    // Add and configure Series
+    let pieSeries = chart.series.push(new am4charts.PieSeries());
+    pieSeries.dataFields.value = "litres";
+    pieSeries.dataFields.category = "country";
+    pieSeries.slices.template.stroke = am4core.color("#fff");
+    pieSeries.slices.template.strokeOpacity = 1;
+    console.log(pieSeries);
+    pieSeries.radius = 75;
+    // This creates initial animation
+    pieSeries.hiddenState.properties.opacity = 1;
+    pieSeries.hiddenState.properties.endAngle = -90;
+    pieSeries.hiddenState.properties.startAngle = -90;
 
-    // Create value axis
-    let valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-
-    // Create series
-    let lineSeries = chart.series.push(new am4charts.LineSeries());
-    lineSeries.dataFields.valueY = "value";
-    lineSeries.dataFields.dateX = "date";
-    lineSeries.name = "Sales";
-    lineSeries.strokeWidth = 3;
-
-    // Add simple bullet
-    let bullet = lineSeries.bullets.push(new am4charts.Bullet());
-    let image = bullet.createChild(am4core.Image);
-    image.href = "https://www.amcharts.com/lib/images/star.svg";
-    image.width = 30;
-    image.height = 30;
-    image.horizontalCenter = "middle";
-    image.verticalCenter = "middle";
+    chart.hiddenState.properties.radius = am4core.percent(0);
   }
 }

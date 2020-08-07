@@ -62,7 +62,7 @@ export class MiDashboardComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.initChart();
     // this.initChart2();
-    // this.initChart3();
+    this.initChart3();
     var c: any = document.getElementById("input-slider"),
       d = document.getElementById("input-slider-value");
 
